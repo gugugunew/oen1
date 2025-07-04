@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>单词应用</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            skinA: {
+              primary: '#0071e3',
+              dark: {
+                primary: '#2997ff',
+                bg: '#1c1c1e',
+                card: '#2c2c2e',
+                btn: '#3a3a3c',
+                activeBtn: '#283A4B',
+                overlay: 'rgba(0, 0, 0, 0.6)'
+              }
+            },
+            skinB: {
+              primary: '#0071e3',
+              light: {
+                navbar: '#F7F7F9',
+                card: '#F5F5F7',
+                btn: '#EAEAEA',
+                bg: '#FFFFFF',
+                activeBtn: '#606C58'
+              },
+              dark: {
+                primary: '#2997ff',
+                bg: '#1c1c1e',
+                card: '#2c2c2e',
+                btn: '#3a3a3c',
+                activeBtn: '#283A4B',
+                overlay: 'rgba(0, 0, 0, 0.6)'
+              }
+            },
+            silver: '#e0e0e0',
+            dark: {
+              silver: '#424242'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            apple: ['-apple-system', 'BlinkMacSystemFont', 'San Francisco', 'Helvetica Neue', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .backdrop-blur-sm {
+        backdrop-filter: blur(8px);
+      }
+      .shadow-soft {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+      .text-glow {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+      }
+      .dark .text-glow {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+      }
+      .flip-container {
+        perspective: 1000px;
+        width: 100%;
+        min-height: 500px;
+      }
+      .flipper {
+        transition: transform 0.6s;
+        transform-style: preserve-3d;
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+      .front, .back {
+        backface-visibility: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        min-height: 500px;
+      }
+      .back {
+        transform: rotateY(180deg);
+      }
+      .flipped .flipper {
+        transform: rotateY(180deg);
+      }
+      .control-btn {
+        min-width: 4rem;
+      }
+      .word-item {
+        @apply transition-all duration-200 cursor-pointer rounded-xl p-4 flex items-center justify-between font-apple focus:outline-none relative pl-6;
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+      }
+      .dark .word-item {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+      }
+      .word-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+          4px 4px 8px rgba(0, 0, 0, 0.12),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+      }
+      .dark .word-item:hover {
+        box-shadow: 
+          4px 4px 8px rgba(0, 0, 0, 0.4),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+      }
+      .word-item.active {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.1),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.5);
+      }
+      .dark .word-item.active {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.35),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.08);
+      }
+      /* 移除聚焦时的蓝色边框 */
+      .word-item:focus {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+      }
+      .dark .word-item:focus {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+      }
+      .btn-active {
+        @apply text-white !important;
+      }
+      /* 主题B激活状态立体效果优化 */
+      .skinB-active {
+        box-shadow: 
+          inset 0 1px 3px rgba(0, 0, 0, 0.4),
+          0 4px 8px rgba(0, 0, 0, 0.3),
+          0 1px 3px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+      }
+      .skinA-dark-active {
+        box-shadow: 
+          inset 0 1px 3px rgba(0, 0, 0, 0.3),
+          0 1px 2px rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+      }
+      .frosted {
+        backdrop-filter: blur(12px) !important;
+        opacity: 0.7 !important;
+        transition: all 0s !important;
+      }
+      .slider-container {
+        position: relative;
+        width: 44px;
+        height: 20px;
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+      }
+      .slider {
+        position: absolute;
+        top: 1px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        background-color: white !important;
+      }
+      .slider-left {
+        left: 1px;
+        transform: translateX(0);
+      }
+      .slider-right {
+        transform: translateX(24px);
+      }
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 4px;
+      }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(107, 114, 128, 0.5);
+      }
+      #wordDisplay {
+        @apply text-4xl font-bold text-center my-3 mb-20 font-apple text-glow rounded-2xl p-6;
+      }
+      .dark #wordDisplay {
+      }
+      /* 主题B白天模式按钮立体样式 */
+      .skinB-light-btn {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+      }
+      .skinB-light-btn:hover {
+        box-shadow: 
+          4px 4px 8px rgba(0, 0, 0, 0.12),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+      }
+      .skinB-light-btn:focus {
+        box-shadow: 
+          0 0 0 3px var(--focus-color, #0071e3),
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .skinB-light-activeBtn {
+        box-shadow: 
+          inset 0 2px 5px rgba(0, 0, 0, 0.2),
+          0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      
+      /* 主题B黑暗模式按钮立体样式 */
+      .dark .skinB-dark-btn {
+        box-shadow: 
+          3px 3px 8px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.05),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.4);
+        transition: all 0.2s ease;
+      }
+      .dark .skinB-dark-btn:hover {
+        box-shadow: 
+          4px 4px 10px rgba(0, 0, 0, 0.4),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.07),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.5);
+        transform: translateY(-1px);
+      }
+      .dark .skinB-dark-btn:focus {
+        box-shadow: 
+          0 0 0 3px var(--focus-color-dark, #2997ff),
+          3px 3px 8px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.05),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.4);
+      }
+      .skinB-dark-activeBtn {
+        box-shadow: 
+          inset 0 2px 5px rgba(0, 0, 0, 0.5),
+          0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 激活项左侧颜色条 */
+      .word-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 0 4px 4px 0;
+      }
+      
+      /* 主题特定的单词项样式 - 左侧颜色条与收藏图标颜色匹配 */
+      
+      /* A主题白天模式 */
+      .skinA:not(.dark) .word-item.active::before {
+        background-color: #0071e3; /* skinA-primary */
+      }
+      .skinA:not(.dark) .word-item .fa-star {
+        color: #0071e3 !important; /* skinA-primary */
+      }
+      
+      /* A主题黑暗模式 */
+      .skinA.dark .word-item.active::before {
+        background-color: #283A4B; /* skinA-dark-activeBtn */
+      }
+      .skinA.dark .word-item .fa-star {
+        color: #283A4B !important; /* skinA-dark-activeBtn */
+      }
+      
+      /* B主题白天模式 */
+      .skinB:not(.dark) .word-item.active::before {
+        background-color: #606C58; /* skinB-light-activeBtn */
+      }
+      .skinB:not(.dark) .word-item .fa-star {
+        color: #606C58 !important; /* skinB-light-activeBtn */
+      }
+      
+      /* B主题黑暗模式 */
+      .skinB.dark .word-item.active::before {
+        background-color: #283A4B; /* skinB-dark-activeBtn */
+      }
+      .skinB.dark .word-item .fa-star {
+        color: #283A4B !important; /* skinB-dark-activeBtn */
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-white dark:bg-skinA-dark-bg transition-colors duration-300 font-sans text-gray-900 dark:text-white skinA">
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-skinA-dark-bg/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300">
+    <div class="container mx-auto px-4 py-2 flex items-center justify-between">
+      <div class="flex items-center">
+        <span class="text-lg font-semibold tracking-tight">Words</span>
+      </div>
+      <button id="menuBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-skinA-dark-btn transition-colors duration-200 z-50">
+        <i class="fa fa-bars text-xl"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 pt-14 pb-10">
+    <div id="expandableCard" class="rounded-3xl p-6 mt-6 mb-8 transition-all duration-500 min-h-[85vh] overflow-hidden card-3d" 
+         style="--focus-color: #0071e3; --focus-color-dark: #2997ff;">
+      <div class="flex justify-end items-start mb-6">
+        <button id="expandBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-skinA-dark-btn transition-colors duration-200">
+          <i class="fa fa-expand text-lg"></i>
+        </button>
+      </div>
+      
+      <div class="flip-container">
+        <div class="flipper">
+          <div class="front">
+            <div class="flex flex-col items-center justify-start px-6 h-full">
+              <div id="wordDisplay" class="text-4xl font-bold text-center my-3 mb-20 font-apple text-glow">
+                the
+              </div>
+              
+              <div id="frontControls" class="flex flex-col items-center gap-5 w-full max-w-md flex-grow justify-center">
+                <button id="prevBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-step-backward mr-1"></i> Previous
+                </button>
+                
+                <button id="playBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-play mr-1"></i> <span>Play</span>
+                </button>
+                
+                <button id="nextBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-step-forward mr-1"></i> Next
+                </button>
+                
+                <button id="collectBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-star-o mr-1"></i> Collect
+                </button>
+                
+                <button id="autoPlayBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-repeat mr-1"></i> Auto Play
+                </button>
+                
+                <button id="slowBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-clock-o mr-1"></i> Slow
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="back">
+            <div class="flex flex-col h-full p-4 pb-8">
+              <h3 class="text-4xl font-bold text-center my-3 mb-12 font-apple text-glow">ALL LIST</h3>
+              
+              <div id="wordListContainer" class="w-full flex-grow overflow-y-auto px-2 mb-6 custom-scrollbar rounded-2xl p-4" style="max-height: calc(85vh - 320px);">
+                <ul class="space-y-4" id="wordList">
+                </ul>
+              </div>
+              
+              <div class="flex justify-center mt-auto mb-8">
+                <button id="flipBackBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white px-8 py-2.5 rounded-full text-lg font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow z-10">
+                  <i class="fa fa-arrow-left mr-2"></i>返回
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="menuContainer">
+    <div id="menuOverlay" class="fixed inset-0 z-40 bg-black/30 dark:bg-skinB-dark-overlay backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-0"></div>
+    
+    <div id="menuPopup" class="absolute z-50 opacity-0 pointer-events-none transition-all duration-300">
+      <div class="bg-white dark:bg-skinB-dark-card rounded-2xl shadow-xl w-48 transform scale-95 transition-all duration-300" id="popupContent">
+        <div class="py-2">
+          <ul class="space-y-1">
+            <li>
+              <button id="themeToggle" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <div class="slider-container bg-gray-200 flex-shrink-0" id="themeSliderContainer">
+                  <div class="slider slider-left" id="themeSlider"></div>
+                </div>
+                <span id="themeText" class="ml-3">Switch Dark</span>
+              </button>
+            </li>
+            
+            <li>
+              <button id="skinToggle" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <div class="slider-container bg-gray-200 flex-shrink-0" id="skinSliderContainer">
+                  <div class="slider slider-left" id="skinSlider"></div>
+                </div>
+                <span id="skinText" class="ml-3">Switch B skin</span>
+              </button>
+            </li>
+
+            <li class="border-t border-gray-200 dark:border-gray-700 my-1"></li>
+            
+            <li>
+              <button id="popupAllListBtn" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <i class="fa fa-list w-6 popup-icon"></i>
+                <span class="ml-3">All List</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const words = ["were", "these", "may", "water", "his", "researcher", "researchers", "because", "often", "those", "information", "could", "important", "now", "would", "early", "experience", "just", "very", "any", "around", "during", "both", "known", "university", "economic", "language", "might", "able", "large", "technology", "animals", "less", "said", "government", "living", "major", "states", "changes", "change", "changed", "evidence", "making", "natural", "data", "say", "whether", "activity", "another", "better", "example", "family", "keyboard", "light", "process", "risk", "think", "understand", "child", "europe", "european", "every", "future", "least", "little", "lot", "problems", "species", "using", "climate", "police", "policy", "politics", "political", "population", "produce", "results", "second", "today", "war", "almost", "although", "though", "thought", "century", "currently", "current", "international", "service", "society", "soil", "team", "amount", "common", "developed", "disease", "down", "farwell", "fare", "feel", "chain", "industry", "own", "place", "recent", "result", "solar", "specific", "state", "systems", "based", "australia", "creative", "create", "culture", "dollars", "history", "impact", "led", "level", "material", "means", "period", "problem", "rather", "role", "says", "supporting", "support", "together", "without", "banking", "certain", "demands", "demand", "effects", "forces", "ever", "growth", "hours", "knowledge", "low", "order", "paper", "provide", "related", "resources", "research", "scientific", "space", "spacecraft", "studies", "terms", "tesla", "usually", "behave", "behavior", "conditions", "discovered", "growing", "immune", "management", "market", "nature", "particular", "particularly", "provides", "set", "under", "understanding", "ways", "wayside", "actually", "among", "considered", "control", "decisions", "depression", "developing", "free", "given", "name", "group", "higher", "improve", "increasing", "concern", "kind", "live", "main", "materials", "media", "model", "never", "outside", "possible", "present", "processes", "production", "products", "revolution", "sense", "show", "subject", "trade", "until", "whole", "activities", "ancient", "bacteria", "becoming", "birds", "blood", "carbon", "color", "diseases", "either", "electric", "greatest", "greater", "grand", "groups", "grow", "heart", "influence", "jobs", "lead", "levels", "medical", "micro", "microbes", "objects", "physical", "published", "rate", "reason", "regions", "rest", "seen", "several", "shown", "side", "similar", "situation", "temperatures", "unique", "variety", "want", "affect", "animal", "package", "benefits", "british", "chemical", "community", "develop", "finding", "forms", "genetic", "giving", "goods", "graduate", "interest", "largest", "last", "indentity", "local", "commerce", "marketing", "meaning", "mentality", "mentally", "mental", "normal", "pollution", "questions", "read", "relatively", "remaining", "remains", "remain", "remained", "rock", "skills", "something", "sounds", "source", "sources", "stars", "step", "taking", "third", "various", "vast", "action", "always", "america", "asked", "associated", "atmosphere", "average", "benefit", "building", "businesses", "cannot", "case", "cognition", "cognitive", "company", "cost", "dawn", "done", "economy", "effect", "exercise", "fact", "functions", "gas", "having", "her", "him", "increase", "increases", "instead", "land", "later", "law", "limited", "lives", "loss", "mind", "months", "national", "next", "oxygen", "position", "positive", "quality", "range", "rates", "real", "response", "signals", "stage", "status", "thousands", "conventional", "traditional", "true", "unions", "white", "workers", "act", "allow", "allows", "already", "analysis", "available", "basic", "beginning", "bodies", "cancer", "clear", "complex", "death", "diet", "drug", "effective", "environmental", "especially", "extent", "fight", "findings", "fundamental", "gives", "going", "gone", "highly", "importance", "industrial", "japan", "legal", "man", "mean", "middle", "overall", "pain", "painful", "percent", "potential", "relationship", "seem", "self", "sites", "size", "strategies", "stress", "success", "temperature", "travel", "union", "universities", "video", "wealth", "adults", "affected", "aid", "approach", "artificial", "basis", "began", "central", "challenging", "coast", "deaths", "directly", "easy", "efficiency", "employee", "employ", "employers", "enough", "environments", "everyone", "evolution", "evolved", "experts", "furniture", "general", "give", "includes", "increasingly", "leading", "linked", "loans", "located", "miles", "online", "parliament", "populations", "practice", "president", "pressure", "product", "programs", "projects", "reality", "reasons", "records", "reserve", "samples", "scale", "shape", "simply", "strong", "struggle", "sustain", "sustainable", "technologies", "thesis", "thing", "value", "wildlife", "account", "accurate", "address", "advanced", "advantage", "again", "against", "avoid", "big", "chronic", "cities", "college", "companies", "concept", "conservation", "contribute", "credit", "damage", "debt", "depend", "diverse", "diversity", "effort", "employees", "end", "exactly", "examination", "experienced", "exposed", "exposure", "external", "families", "following", "fresh", "gap", "globalization", "hearing", "huge", "hundred", "individuals", "infections", "informative", "introverts", "journal", "literature", "lose", "lower", "majority", "male", "measure", "memory", "methods", "military", "ocean", "orbit", "planning", "popular", "predict", "price", "program", "protected", "protein", "purpose", "region", "required", "residents", "revealed", "reveals", "rich", "scenario", "sector", "serve", "shell", "solution", "solutions", "sometimes", "started", "starting", "subjects", "sufficient", "television", "tourists", "violence", "write", "ability", "active", "alcohol", "alternative", "anxiety", "army", "audience", "biggest", "biological", "calls", "carefully", "cases", "cell", "centuries", "civil", "cloud", "coal", "colleagues", "commercial", "contain", "content", "cosmic", "couple", "created", "creatures", "customers", "decision", "described", "devices", "domestic", "economies", "efforts", "established", "executive", "exit", "exist", "experiments", "explain", "extremely", "extroverts", "foreign", "generally", "generate", "goals", "governments", "gut", "hope", "hot", "implications", "impossible", "improved", "improvement", "independent", "infection", "intelligence", "introduced", "involved", "keeping", "labor", "layer", "leads", "learned", "location", "metals", "mining", "moon", "motor", "movement", "nations", "native", "negative", "noise", "obesity", "organelles", "organisms", "organizations", "parents", "patients", "possess", "prevent", "probably", "processing", "produced", "productivity", "progress", "providing", "quite", "recently", "record", "reducing", "regular", "rely", "safe", "rice", "search", "seemed", "smell", "special", "spread", "style", "supply", "surface", "survive", "target", "testing", "thus", "tools", "trump", "ultimately", "universe", "upon", "volcanic", "wars", "weather", "wide", "widespread", "worked", "worldwide", "abilities", "academic", "access", "actions", "agriculture", "aim", "analyses", "antarctica", "appears", "application", "applied", "argument", "author", "babies", "believed", "below", "bonds", "buildings", "burning", "came", "cards", "ceremony", "chinese", "choice", "choices", "classes", "colonies", "communicate", "competitive", "concerned", "consider", "constitution", "consumers", "continues", "crisis", "cycle", "dark", "decade", "decades", "department", "depends", "determine", "determined", "digital", "direct", "disaster", "distribution", "easily", "eggs", "electrical", "emissions", "employer", "enables", "endangered", "entire", "estimates", "expected", "extinction", "failure", "famous", "fast", "father", "figures", "finds", "fixed", "foam", "ford", "formation", "frozen", "full", "gases", "girls", "greatly", "greek", "habitat", "half", "head", "healthcare", "healthy", "heavy", "hemisphere", "host", "festival", "hour", "hunted", "ice", "identity", "illness", "indian", "injury", "inside", "interactions", "internal", "involves", "involving", "issue", "items", "leaders", "learned", "leaves", "lecture", "lights", "listening", "look", "looking", "manufacturers", "medicine", "meet", "members", "membrane", "metal", "minute", "miss", "mobile", "models", "month", "motion", "mountain", "moved", "multiply", "multiple", "news", "notes", "object", "offered", "older", "ones", "organization", "origins", "outcomes", "pace", "participants", "pattern", "peasant", "per", "performance", "perhaps", "personal", "phenomenon", "plan", "played", "ponds", "precious", "prefer", "presence", "prices", "private", "produces", "protection", "provided", "providers", "publication", "purposes", "quarter", "radioactive", "rarely", "reach", "realized", "really", "recognized", "reduction", "regulations", "remain", "reported", "requirements", "responsible", "reward", "risks", "rivals", "river", "sales", "satellite", "section", "seems", "sell", "serious", "setting", "severe", "sharing", "shows", "slowly", "snow", "soft", "soils", "soldiers", "statistical", "stressed", "studying", "subtle", "suggest", "sunshine", "sure", "talking", "tax", "tea", "temporary", "test", "thick", "throughout", "tissue", "tissues", "tobacco", "top", "toward", "training", "typically", "uk", "urban", "usage", "user", "vaccine", "walking", "western", "whales", "whose", "widely", "window", "writer", "writing", "written", "abstract", "accident", "achievement", "administration", "african", "ages", "allocated", "alone", "alter", "amounts", "amphibians", "annually", "apart", "appearance", "arms", "artists", "asia", "ask", "assessment", "assets", "assistance", "association", "athens", "atlantic", "attention", "australians", "automated", "availability", "aware", "bats", "becomes", "behave", "behaviors", "beliefs", "billions", "biodiversity", "birth", "blame", "boats", "brains", "brand", "breeding", "brought", "cable", "canada", "canyon", "capital", "capture", "carried", "categories", "caterpillars", "cause", "cellular", "center", "centralized", "certainly", "challenge", "chance", "channels", "characters", "chemicals", "city", "claims", "classroom", "clean", "close", "code", "collecting", "combined", "commerce", "commercials", "competition", "conflict", "connected", "connections", "consume", "consumer", "continue", "conversation", "corporate", "costs", "criteria", "critical", "crops", "crucial", "crust", "daily", "dangerous", "deal", "debate", "definition", "degree", "degrees", "demanding", "demonstrated", "deposit", "describe", "deserts", "destroy", "details", "device", "differ", "discover", "discoveries", "disorder", "display", "divided", "dna", "drinking", "drinks", "drive", "e", "ear", "earlier", "easier", "east", "eastern", "educational", "effectively", "efficient", "efficiently", "else", "emerged", "emergence", "emotional", "employed", "enable", "england", "era", "eruptions", "estimate", "everyday", "everything", "examples", "exchange", "expectations", "expensive", "express", "extraordinary", "eye", "eyes", "falls", "farming", "faster", "federal", "feed", "feet", "final", "firm", "fish", "fit", "flies", "flowers", "focusing", "follow", "forest", "forests", "formed", "fossil", "fourth", "fuel", "functional", "funding", "gain", "galaxies", "gardens", "generation", "generative", "genes", "gold", "got", "graduates", "hair", "hall", "happen", "happened", "happy", "heat", "held", "here", "highest", "hospitals", "house", "housing", "humanities", "hydrogen", "imagine", "impacts", "infants", "insights", "institution", "interested", "interesting", "invaders", "investment", "involve", "island", "japanese", "kids", "kinds", "languages", "larger", "layers", "leaving", "length", "letters", "lifestyle", "limits", "lines", "linguistic", "links", "love", "madagascar", "mammals", "manage", "managers", "mark", "marked", "marx", "measures", "member", "method", "mice", "migration", "minerals", "ministers", "moderate", "moisture", "moods", "moreover", "motivation", "multiple", "muscle", "museum", "my", "nation", "nearby", "necessarily", "nests", "networks", "neural", "nor", "norms", "nothing", "numerous", "obvious", "officials", "ongoing", "opportunity", "option", "ordinary", "organ", "origin", "otherwise", "ourselves", "overdose", "overseas", "owners", "ozone", "papers", "patterns", "peer", "perform", "periods", "personality", "persons", "picked", "pictures", "plato", "players", "plenty", "policies", "position", "powerful", "pre", "precipitation", "prevents", "primary", "profit", "project", "prone", "psychology", "purely", "radical", "raised", "rapid", "rapidly", "raw", "recognize", "reduced", "refers", "reflected", "regarded", "remote", "replacing", "reprint", "requires", "resistance", "resistant", "resource", "responsibility", "retirement", "returned", "rise", "road", "rose", "roughly", "satellites", "save", "saving", "scholars", "screen", "security", "seek", "sentence", "sentences", "separate", "share", "shopping", "short", "similarly", "site", "skin", "slight", "slightly", "smaller", "someone", "sort", "sound", "south", "sovereignty", "speak", "spite", "stamp", "stamps", "stay", "stayed", "stocks", "story", "strategy", "strength", "strongly", "substance", "successful", "successfully", "sugar", "summer", "surprisingly", "swans", "switch", "symptoms", "talk", "tasks", "taste", "tau", "technique", "texts", "theories", "thinks", "thirty", "thomas", "though", "tiny", "tourist", "town", "transactions", "tremendous", "trends", "tutor", "unchanged", "unless", "unlikely", "vary", "viral", "vulnerable", "warm", "waters", "waves", "weight", "win", "writers", "x", "york", "younger", "abortions", "accessible", "achievements", "acid", "acknowledging", "actual", "adapt", "addition", "adequate", "admission", "adult", "advance", "afford", "agreed", "agreement", "agricultural", "alzheimer", "amusement", "annual", "anti", "antibiotic", "anyone", "anywhere", "apparently", "appear", "appeared", "applications", "approaches", "appropriate", "arising", "arteries", "asian", "asking", "aspects", "assess", "assistants", "astronomers", "atmospheric", "attempt", "attended", "attract", "authoritative", "authors", "auto", "automatically", "awareness", "away", "background", "bad", "battery", "battle", "belief", "beneath", "beneficial", "bill", "biodegradable", "biologist", "biologists", "bond", "botswana", "bound", "boys", "break", "breakfast", "brewing", "bright", "britain", "broad", "brown", "budget", "buying", "calculators", "campus", "candidate", "capacity", "captured", "career", "catch", "cats", "causing", "celled", "celsius", "challenges", "changed", "character", "childhood", "china", "circumcision", "circumstances", "closest", "collapse", "collect", "collections", "colors", "combat", "comfortable", "coming", "communist", "communities", "compact", "complete", "composed", "comprehensive", "computers", "concentrations", "concerns", "conclusion", "condensation", "condition", "conducted", "conferences", "connect", "connection", "connectivity", "consequently", "constellation", "constellations", "consultation", "consumption", "continent", "continuing", "contributions", "controlled", "controls", "cool", "coordination", "cope", "copper", "copyright", "correct", "council", "covid", "creating", "creation", "creative", "creature", "criminal", "critically", "cross", "cry", "cultivating", "cultures", "curators", "currently", "customary", "damaged", "danger", "de", "dead", "decrease", "deficiency", "define", "defined", "deliver", "depending", "descriptive", "designs", "detailed", "diabetes", "dialogue", "die", "dinner", "discuss", "discussed", "distance", "distant", "disturbances", "doctor", "dolphins", "domestication", "domicile", "donald", "donors", "door", "doubled", "dramatic", "drawing", "driven", "driver", "drivers", "dry", "dutch", "eagle", "earthquake", "earthquakes", "eat", "eating", "economics", "ecosystems", "elliptical", "emerald", "encounter", "encourage", "engaging", "engine", "engineers", "engraving", "enhances", "ensuring", "establishment", "eventually", "everywhere", "examined", "excellent", "exotic", "expect", "experimental", "explore", "exploring", "extreme", "face", "facilities", "facing", "faculty", "fake", "fall", "fame", "fastest", "fault", "feeling", "fields", "fifth", "fifty", "fighting", "filled", "film", "finally", "firms", "flags", "flexible", "flow", "focus", "football", "foundation", "fourfold", "fraction", "fractional", "fragmented", "friend", "frog", "fuels", "funded", "galaxy", "generator", "germany", "getting", "goes", "golden", "grand", "greatest", "grounds", "happens", "harder", "harvard", "hazards", "heavily", "hectares", "helped", "helping", "hemispheres", "hence", "herbivores", "hide", "hihi", "historian", "historical", "historically", "hole", "homework", "household", "houses", "hunting", "hybrid", "identify", "ignore", "illegal", "illnesses", "images", "immediately", "implantation", "impression", "impressive", "income", "inevitable", "influenced", "influences", "influencing", "inform", "initial", "initially", "innovations", "innovative", "instance", "institute", "institutions", "instruction", "intangible", "intended", "intensive", "interpretation", "interventions", "introvert", "invest", "investigators", "involvement", "iron", "isn", "james", "join"];
+      let currentWordIndex = 0;
+      let isFlipped = false;
+      let menuOpen = false;
+      let isExpanded = false;
+      
+      const audioElement = new Audio();
+      
+      let isAutoPlaying = false;
+      let isPlaying = false;
+      let autoPlayTimer = null;
+      let scrollCheckInterval = null;
+      let collectedWords = JSON.parse(localStorage.getItem('collectedWords')) || [];
+      let isSlow = false;
+      let isPlayTriggeredByControl = false;
+      let currentSkin = localStorage.getItem('currentSkin') || 'A';
+      
+      // 设置初始皮肤类
+      document.body.classList.toggle('skinA', currentSkin === 'A');
+      document.body.classList.toggle('skinB', currentSkin === 'B');
+      
+      let isAutoScrollPaused = false;
+      let userActivityTimer = null;
+      const AUTO_SCROLL_DELAY = 5000;
+      const SCROLL_THRESHOLD = 20;
+      const SCROLL_CHECK_FREQ = 150;
+      
+      const navbar = document.getElementById('navbar');
+      const menuBtn = document.getElementById('menuBtn');
+      const menuPopup = document.getElementById('menuPopup');
+      const popupContent = document.getElementById('popupContent');
+      const menuOverlay = document.getElementById('menuOverlay');
+      const expandBtn = document.getElementById('expandBtn');
+      const expandableCard = document.getElementById('expandableCard');
+      const themeToggle = document.getElementById('themeToggle');
+      const themeText = document.getElementById('themeText');
+      const wordDisplay = document.getElementById('wordDisplay');
+      const popupAllListBtn = document.getElementById('popupAllListBtn');
+      const flipBackBtn = document.getElementById('flipBackBtn');
+      const flipContainer = document.querySelector('.flip-container');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const wordList = document.getElementById('wordList');
+      const wordListContainer = document.getElementById('wordListContainer');
+      const playBtn = document.getElementById('playBtn');
+      const playBtnText = playBtn.querySelector('span');
+      const playBtnIcon = playBtn.querySelector('i');
+      const autoPlayBtn = document.getElementById('autoPlayBtn');
+      const collectBtn = document.getElementById('collectBtn');
+      const slowBtn = document.getElementById('slowBtn');
+      const themeSliderContainer = document.getElementById('themeSliderContainer');
+      const themeSlider = document.getElementById('themeSlider');
+      const skinToggle = document.getElementById('skinToggle');
+      const skinSliderContainer = document.getElementById('skinSliderContainer');
+      const skinSlider = document.getElementById('skinSlider');
+      const skinText = document.getElementById('skinText');
+      const popupIcons = document.querySelectorAll('.popup-icon');
+
+      const allControlButtons = [
+        prevBtn, nextBtn, playBtn, autoPlayBtn, collectBtn, slowBtn, flipBackBtn
+      ];
+      
+      // 初始化单词列表
+      function initWordList() {
+        wordList.innerHTML = '';
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        let displayBgClass;
+        if (currentSkin === 'B' && !isDark) {
+          displayBgClass = 'bg-skinB-light-bg/90';
+        } else {
+          displayBgClass = isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white/90';
+        }
+        
+        words.forEach((word, index) => {
+          const li = document.createElement('li');
+          li.className = `${displayBgClass} word-item ${index === currentWordIndex ? 'active' : ''}`;
+          li.tabIndex = 0;
+          
+          // 移除原有的颜色类，由CSS根据主题自动处理
+          const starIcon = collectedWords.includes(word) ? 
+            `<i class="fa fa-star"></i>` : 
+            '<i class="fa fa-star-o"></i>';
+          
+          li.innerHTML = `
+            <span class="text-base font-medium">${word}</span>
+            <span class="ml-2">${starIcon}</span>
+          `;
+          
+          li.addEventListener('click', () => {
+            resetControlButtonState();
+            const wasPlaying = isPlaying;
+            if (wasPlaying) {
+              stopAudio();
+              if (autoPlayTimer) clearInterval(autoPlayTimer);
+            }
+            
+            currentWordIndex = index;
+            showWord(currentWordIndex);
+            
+            if (isAutoPlaying && wasPlaying) {
+              isPlayTriggeredByControl = true;
+              speakWord(words[currentWordIndex], true);
+              setupAutoPlayTimer();
+            } else if (!isAutoPlaying && wasPlaying) {
+              isPlayTriggeredByControl = true;
+              speakWord(words[currentWordIndex], false);
+            }
+          });
+          
+          li.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              li.click();
+            }
+          });
+          
+          wordList.appendChild(li);
+        });
+      }
+      
+      function updateWordListHeight() {
+        const listContainer = document.getElementById('wordListContainer');
+        if (listContainer) {
+          if (isExpanded) {
+            listContainer.style.maxHeight = 'calc(100vh - 320px)';
+          } else {
+            listContainer.style.maxHeight = 'calc(85vh - 320px)';
+          }
+        }
+      }
+      
+      function updatePopupIconsColor() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const iconColor = isDark ? 'text-white' : 'text-gray-900';
+        
+        popupIcons.forEach(icon => {
+          icon.className = icon.className
+            .replace(/text-skinA-primary|text-skinB-primary|text-skinA-dark-primary|text-skinB-dark-primary/g, '')
+            .replace(/text-white|text-gray-900|text-gray-400|text-gray-500/g, '');
+          icon.classList.add(iconColor);
+          icon.classList.add('w-6');
+        });
+      }
+      
+      function updateSliderColors() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        
+        let activeColor;
+        if (currentSkin === 'A') {
+          activeColor = isDark ? '#283A4B' : '#0071e3';
+        } else {
+          activeColor = isDark ? '#283A4B' : '#606C58';
+        }
+        
+        [themeSliderContainer, skinSliderContainer].forEach(container => {
+          container.style.backgroundColor = activeColor;
+        });
+        
+        expandableCard.style.setProperty('--focus-color', currentSkin === 'A' ? '#0071e3' : '#0071e3');
+        expandableCard.style.setProperty('--focus-color-dark', currentSkin === 'A' ? '#2997ff' : '#2997ff');
+      }
+      
+      function updateSkinSlider() {
+        if (currentSkin === 'B') {
+          skinSlider.classList.remove('slider-left');
+          skinSlider.classList.add('slider-right');
+          skinText.textContent = 'Switch A skin';
+          document.body.classList.remove('skinA');
+          document.body.classList.add('skinB');
+        } else {
+          skinSlider.classList.remove('slider-right');
+          skinSlider.classList.add('slider-left');
+          skinText.textContent = 'Switch B skin';
+          document.body.classList.remove('skinB');
+          document.body.classList.add('skinA');
+        }
+      }
+      
+      function initSkin() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        
+        document.body.className = document.body.className
+          .replace(/bg-white|bg-skinB-light-bg/g, '')
+          .replace(/dark:bg-skinA-dark-bg|dark:bg-skinB-dark-bg/g, '');
+        
+        navbar.className = navbar.className
+          .replace(/bg-white\/80|bg-skinB-light-navbar\/80/g, '')
+          .replace(/dark:bg-skinA-dark-bg\/80|dark:bg-skinB-dark-bg\/80/g, '');
+        
+        expandableCard.className = expandableCard.className
+          .replace(/bg-white|bg-skinB-light-card/g, '')
+          .replace(/dark:bg-skinA-dark-card|dark:bg-skinB-dark-card/g, '');
+        
+        if (currentSkin === 'B' && !isDark) {
+          expandableCard.classList.add('bg-skinB-light-bg/90');
+          wordDisplay.classList.add('bg-skinB-light-bg/90');
+        } else {
+          const bgClass = isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white/90';
+          expandableCard.classList.add(bgClass);
+          wordDisplay.classList.add(bgClass);
+        }
+        
+        allControlButtons.forEach(btn => {
+          btn.className = btn.className
+            .replace(/bg-white|bg-skinB-light-btn/g, '')
+            .replace(/hover:bg-gray-50|hover:bg-skinB-light-btn\/80/g, '')
+            .replace(/dark:bg-skinA-dark-btn|dark:bg-skinB-dark-btn/g, '');
+        
+          btn.classList.remove('skinB-active', 'skinA-dark-active');
+        });
+        
+        if (currentSkin === 'B' && !isDark) {
+          document.body.classList.add('bg-skinB-light-bg');
+          navbar.classList.add('bg-skinB-light-navbar/80');
+          
+          allControlButtons.forEach(btn => {
+            btn.classList.add('bg-skinB-light-btn');
+            btn.classList.add('hover:bg-skinB-light-btn/80');
+          });
+        } else {
+          document.body.classList.add(isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white');
+          navbar.classList.add(isDark ? `dark:bg-${skinPrefix}-dark-bg/80` : 'bg-white/80');
+          
+          allControlButtons.forEach(btn => {
+            btn.classList.add(isDark ? `dark:bg-${skinPrefix}-dark-btn` : 'bg-white');
+            btn.classList.add('hover:bg-gray-50');
+          });
+        }
+        
+        menuOverlay.className = menuOverlay.className.replace(/dark:bg-skinA-dark-overlay|dark:bg-skinB-dark-overlay/g, `dark:bg-${skinPrefix}-dark-overlay`);
+        popupContent.className = popupContent.className.replace(/dark:bg-skinA-dark-card|dark:bg-skinB-dark-card/g, `dark:bg-${skinPrefix}-dark-card`);
+        
+        updatePopupIconsColor();
+        initWordList();
+        updateSliderColors();
+      }
+      
+      function switchSkin(skin) {
+        currentSkin = skin;
+        localStorage.setItem('currentSkin', skin);
+        refreshAllButtonStates();
+        updateSkinSlider();
+        initSkin();
+        closeMenu();
+      }
+      
+      function setButtonActive(button, isActive) {
+        if (button) {
+          const isDark = document.documentElement.classList.contains('dark');
+          const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+          
+          button.classList.remove('skinB-active', 'skinA-dark-active', 'btn-active');
+          button.classList.remove(`bg-skinA-primary`, `bg-skinA-dark-activeBtn`, `bg-skinB-light-activeBtn`, `bg-skinB-dark-activeBtn`);
+          button.classList.remove(`hover:bg-skinA-primary/90`, `hover:bg-skinA-dark-activeBtn/90`, `hover:bg-skinB-light-activeBtn/90`, `hover:bg-skinB-dark-activeBtn/90`);
+          
+          button.style.backgroundColor = '';
+          button.style.boxShadow = '';
+          button.style.transform = '';
+          
+          requestAnimationFrame(() => {
+            if (isActive) {
+              if (currentSkin === 'A') {
+                button.classList.add('btn-active');
+                const activeColor = isDark ? `bg-skinA-dark-activeBtn` : `bg-skinA-primary`;
+                button.classList.add(activeColor);
+                button.classList.add(`hover:${activeColor}/90`);
+                
+                if (isDark) {
+                  button.classList.add('skinA-dark-active');
+                  button.style.backgroundColor = '#283A4B';
+                }
+              } else {
+                button.classList.add('btn-active', 'skinB-active');
+                const activeColor = isDark ? `bg-skinB-dark-activeBtn` : `bg-skinB-light-activeBtn`;
+                button.classList.add(activeColor);
+                button.classList.add(`hover:${activeColor}/90`);
+                button.style.backgroundColor = isDark ? '#283A4B' : '#606C58';
+                button.style.transform = 'translateY(-1px)';
+              }
+              
+              button.classList.remove('hover:bg-gray-50', 'hover:bg-skinB-light-btn/80', 'dark:hover:bg-skinA-dark-btn', 'dark:hover:bg-skinB-dark-btn');
+            } else {
+              button.classList.remove('skinB-active', 'skinA-dark-active');
+              if (currentSkin === 'B' && !isDark) {
+                button.classList.add('hover:bg-skinB-light-btn/80');
+              } else {
+                button.classList.add('hover:bg-gray-50');
+              }
+              button.classList.add(`dark:hover:bg-${skinPrefix}-dark-btn`);
+            }
+          });
+        }
+      }
+      
+      function refreshAllButtonStates() {
+        requestAnimationFrame(() => {
+          allControlButtons.forEach(btn => {
+            btn.classList.remove('skinB-active', 'skinA-dark-active', 'btn-active');
+            btn.style.backgroundColor = '';
+            btn.style.boxShadow = '';
+            btn.style.transform = '';
+          });
+          
+          requestAnimationFrame(() => {
+            setButtonActive(prevBtn, false);
+            setButtonActive(nextBtn, false);
+            setButtonActive(playBtn, isPlaying);
+            setButtonActive(autoPlayBtn, isAutoPlaying);
+            setButtonActive(collectBtn, collectedWords.includes(words[currentWordIndex]));
+            setButtonActive(slowBtn, isSlow);
+          });
+        });
+      }
+      
+      function updatePlayButtonState(isActive, shouldActivate) {
+        if (isActive) {
+          playBtnIcon.classList.remove('fa-play');
+          playBtnIcon.classList.add('fa-pause');
+          playBtnText.textContent = 'Pause';
+        } else {
+          playBtnIcon.classList.remove('fa-pause');
+          playBtnIcon.classList.add('fa-play');
+          playBtnText.textContent = 'Play';
+        }
+        setButtonActive(playBtn, isActive && shouldActivate);
+      }
+      
+      function positionPopup() {
+        const menuBtnRect = menuBtn.getBoundingClientRect();
+        const popupStyle = menuPopup.style;
+        popupStyle.top = `${menuBtnRect.bottom}px`;
+        popupStyle.right = `${window.innerWidth - menuBtnRect.left}px`;
+      }
+      
+      function updateWordListActive() {
+        document.querySelectorAll('.word-item').forEach((item, index) => {
+          if (index === currentWordIndex) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      }
+      
+      // 检查元素是否在可视区域内
+      function isElementVisible(element, container) {
+        const rect = element.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        return (
+          rect.top >= containerRect.top &&
+          rect.bottom <= containerRect.bottom
+        );
+      }
+      
+      // 滚动到指定元素，使其居中显示
+      function scrollToElement(element, container) {
+        const elementRect = element.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const containerTop = container.scrollTop;
+        
+        const elementPosition = elementRect.top - containerRect.top + containerTop;
+        const containerMiddle = containerRect.height / 2;
+        const elementMiddle = elementRect.height / 2;
+        
+        container.scrollTo({
+          top: elementPosition - containerMiddle + elementMiddle,
+          behavior: 'smooth'
+        });
+      }
+      
+      // 自动滚动逻辑
+      function checkAutoScroll() {
+        if (!isAutoPlaying || isAutoScrollPaused) return;
+        
+        const activeWord = document.querySelector('.word-item.active');
+        if (!activeWord) return;
+        
+        const container = wordListContainer;
+        
+        if (!isElementVisible(activeWord, container)) {
+          scrollToElement(activeWord, container);
+          return;
+        }
+        
+        const activeIndex = Array.from(wordList.children).indexOf(activeWord);
+        const totalWords = wordList.children.length;
+        let targetIndex = activeIndex + 3;
+        
+        if (targetIndex >= totalWords) {
+          const overflow = targetIndex - totalWords;
+          
+          if (activeIndex >= totalWords - 3) {
+            container.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+            return;
+          }
+          
+          targetIndex = overflow;
+        }
+        
+        const targetWord = wordList.children[targetIndex];
+        const targetRect = targetWord.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        if (targetRect.bottom > containerRect.bottom - SCROLL_THRESHOLD) {
+          const scrollAmount = targetRect.bottom - containerRect.bottom + SCROLL_THRESHOLD;
+          container.scrollBy({
+            top: scrollAmount,
+            behavior: 'smooth'
+          });
+        }
+      }
+      
+      function startScrollCheck() {
+        if (scrollCheckInterval) {
+          clearInterval(scrollCheckInterval);
+        }
+        scrollCheckInterval = setInterval(checkAutoScroll, SCROLL_CHECK_FREQ);
+      }
+      
+      function stopScrollCheck() {
+        if (scrollCheckInterval) {
+          clearInterval(scrollCheckInterval);
+          scrollCheckInterval = null;
+        }
+      }
+      
+      // 暂停自动滚动并设置恢复计时器
+      function pauseAutoScroll() {
+        if (!isAutoPlaying) return;
+        
+        isAutoScrollPaused = true;
+        
+        if (userActivityTimer) {
+          clearTimeout(userActivityTimer);
+        }
+        
+        userActivityTimer = setTimeout(() => {
+          isAutoScrollPaused = false;
+          
+          const activeWord = document.querySelector('.word-item.active');
+          if (activeWord && !isElementVisible(activeWord, wordListContainer)) {
+            scrollToElement(activeWord, wordListContainer);
+            setTimeout(checkAutoScroll, 600);
+          } else {
+            checkAutoScroll();
+          }
+        }, AUTO_SCROLL_DELAY);
+      }
+      
+      function stopAudio() {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        isPlaying = false;
+        updatePlayButtonState(false, false);
+      }
+      
+      function speakWord(word, isAuto) {
+        stopAudio();
+        
+        const youdaoUrl = `http://dict.youdao.com/dictvoice?type=0&audio=${encodeURIComponent(word)}`;
+        audioElement.src = youdaoUrl;
+        
+        isPlaying = true;
+        const shouldActivate = !isPlayTriggeredByControl || isAuto;
+        updatePlayButtonState(true, shouldActivate);
+        
+        updateWordListActive();
+        
+        audioElement.onended = function() {
+          isPlaying = false;
+          if (!isAutoPlaying) {
+            updatePlayButtonState(false, false);
+          }
+        };
+        
+        audioElement.play().catch(error => {
+          console.error('播放失败:', error);
+          isPlaying = false;
+          updatePlayButtonState(false, false);
+        });
+      }
+      
+      function showWord(index) {
+        wordDisplay.textContent = words[index];
+        updateWordListActive();
+        updateCollectBtn();
+        
+        if (isAutoPlaying) {
+          checkAutoScroll();
+        }
+      }
+      
+      prevBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        stopAudio();
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        
+        currentWordIndex = (currentWordIndex - 1 + words.length) % words.length;
+        showWord(currentWordIndex);
+        
+        isPlayTriggeredByControl = true;
+        
+        setButtonActive(prevBtn, true);
+        setButtonActive(nextBtn, false);
+        setTimeout(() => setButtonActive(prevBtn, false), 150);
+        
+        speakWord(words[currentWordIndex], isAutoPlaying);
+        
+        if (isAutoPlaying) {
+          setupAutoPlayTimer();
+        }
+      });
+      
+      nextBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        stopAudio();
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        
+        currentWordIndex = (currentWordIndex + 1) % words.length;
+        showWord(currentWordIndex);
+        
+        isPlayTriggeredByControl = true;
+        
+        setButtonActive(nextBtn, true);
+        setButtonActive(prevBtn, false);
+        setTimeout(() => setButtonActive(nextBtn, false), 150);
+        
+        speakWord(words[currentWordIndex], isAutoPlaying);
+        
+        if (isAutoPlaying) {
+          setupAutoPlayTimer();
+        }
+      });
+      
+      playBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (isPlaying) {
+          stopAudio();
+          if (autoPlayTimer) clearInterval(autoPlayTimer);
+        } else {
+          resetControlButtonState();
+          isPlaying = true;
+          isPlayTriggeredByControl = false;
+          updatePlayButtonState(true, true);
+          speakWord(words[currentWordIndex], isAutoPlaying);
+          
+          if (isAutoPlaying) {
+            setupAutoPlayTimer();
+          }
+        }
+      });
+      
+      function resetControlButtonState() {
+        setButtonActive(prevBtn, false);
+        setButtonActive(nextBtn, false);
+      }
+      
+      function setupAutoPlayTimer() {
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        const intervalTime = isSlow ? 3000 : 2000;
+        
+        startScrollCheck();
+        
+        autoPlayTimer = setInterval(() => {
+          currentWordIndex = (currentWordIndex + 1) % words.length;
+          showWord(currentWordIndex);
+          isPlayTriggeredByControl = false;
+          speakWord(words[currentWordIndex], true);
+        }, intervalTime);
+      }
+      
+      autoPlayBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (isAutoPlaying) {
+          stopAudio();
+          if (autoPlayTimer) clearInterval(autoPlayTimer);
+          stopScrollCheck();
+          isAutoPlaying = false;
+          isPlaying = false;
+          setButtonActive(autoPlayBtn, false);
+          updatePlayButtonState(false, false);
+          resetControlButtonState();
+        } else {
+          resetControlButtonState();
+          isAutoPlaying = true;
+          setButtonActive(autoPlayBtn, true);
+          updatePlayButtonState(false, false);
+          
+          setupAutoPlayTimer();
+        }
+      });
+      
+      function updateCollectBtn() {
+        const currentWord = words[currentWordIndex];
+        const collectIcon = collectBtn.querySelector('i');
+        const isCollected = collectedWords.includes(currentWord);
+        
+        if (isCollected) {
+          collectIcon.classList.remove('fa-star-o');
+          collectIcon.classList.add('fa-star');
+        } else {
+          collectIcon.classList.remove('fa-star');
+          collectIcon.classList.add('fa-star-o');
+        }
+        
+        setButtonActive(collectBtn, isCollected);
+      }
+      
+      collectBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        resetControlButtonState();
+        const currentWord = words[currentWordIndex];
+        const index = collectedWords.indexOf(currentWord);
+        
+        if (index === -1) {
+          collectedWords.push(currentWord);
+        } else {
+          collectedWords.splice(index, 1);
+        }
+        
+        localStorage.setItem('collectedWords', JSON.stringify(collectedWords));
+        updateCollectBtn();
+        initWordList();
+      });
+      
+      slowBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        resetControlButtonState();
+        isSlow = !isSlow;
+        setButtonActive(slowBtn, isSlow);
+        
+        if (isAutoPlaying && autoPlayTimer) {
+          clearInterval(autoPlayTimer);
+          setupAutoPlayTimer();
+        }
+      });
+      
+      window.addEventListener('resize', () => {
+        if (menuOpen) positionPopup();
+        if (isExpanded) {
+          updateWordListHeight();
+        }
+      });
+      
+      menuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        pauseAutoScroll();
+        
+        if (menuOpen) {
+          closeMenu();
+        } else {
+          positionPopup();
+          openMenu();
+          updatePopupIconsColor();
+        }
+      });
+      
+      // 点击空白处关闭菜单
+      menuOverlay.addEventListener('click', function() {
+        if (menuOpen) {
+          closeMenu();
+        }
+      });
+      
+      // 防止点击菜单内容时关闭菜单
+      popupContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+      
+      function openMenu() {
+        menuPopup.classList.remove('opacity-0', 'pointer-events-none');
+        popupContent.classList.remove('scale-95');
+        popupContent.classList.add('scale-100');
+        menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        navbar.classList.add('frosted');
+        menuOpen = true;
+      }
+      
+      function closeMenu() {
+        menuPopup.classList.add('opacity-0', 'pointer-events-none');
+        popupContent.classList.remove('scale-100');
+        popupContent.classList.add('scale-95');
+        menuOverlay.classList.add('opacity-0', 'pointer-events-none');
+        navbar.classList.remove('frosted');
+        menuOpen = false;
+      }
+      
+      expandBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (isPlaying) {
+          stopAudio();
+          if (autoPlayTimer) clearInterval(autoPlayTimer);
+          stopScrollCheck();
+          isPlaying = false;
+          updatePlayButtonState(false, false);
+        }
+        
+        if (isExpanded) {
+          expandableCard.classList.remove('fixed', 'inset-0', 'm-0', 'z-40', 'rounded-none', 'p-8');
+          expandableCard.classList.add('rounded-3xl', 'mt-6', 'mb-8', 'p-6');
+          expandBtn.innerHTML = '<i class="fa fa-expand text-lg"></i>';
+          document.body.classList.remove('overflow-hidden');
+          navbar.classList.remove('opacity-0', 'pointer-events-none');
+        } else {
+          expandableCard.classList.add('fixed', 'inset-0', 'm-0', 'z-40', 'rounded-none', 'p-8');
+          expandableCard.classList.remove('rounded-3xl', 'mt-6', 'mb-8', 'p-6');
+          expandBtn.innerHTML = '<i class="fa fa-compress text-lg"></i>';
+          document.body.classList.add('overflow-hidden');
+          navbar.classList.add('opacity-0', 'pointer-events-none');
+          closeMenu();
+        }
+        
+        isExpanded = !isExpanded;
+        updateWordListHeight();
+      });
+      
+      function updateTheme() {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) {
+          themeText.textContent = 'Switch Light';
+          themeSlider.classList.remove('slider-left');
+          themeSlider.classList.add('slider-right');
+        } else {
+          themeText.textContent = 'Switch Dark';
+          themeSlider.classList.remove('slider-right');
+          themeSlider.classList.add('slider-left');
+        }
+        
+        updateSliderColors();
+        updatePopupIconsColor();
+        refreshAllButtonStates();
+        initSkin();
+      }
+      
+      skinToggle.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        const newSkin = currentSkin === 'A' ? 'B' : 'A';
+        switchSkin(newSkin);
+      });
+      
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 10) {
+          navbar.classList.add('shadow-md');
+        } else {
+          navbar.classList.remove('shadow-md');
+        }
+      });
+      
+      themeToggle.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          localStorage.theme = 'light';
+        } else {
+          document.documentElement.classList.add('dark');
+          localStorage.theme = 'dark';
+        }
+        updateTheme();
+        closeMenu();
+      });
+      
+      popupAllListBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        toggleFlip();
+        closeMenu();
+      });
+      
+      flipBackBtn.addEventListener('click', toggleFlip);
+      
+      function toggleFlip() {
+        pauseAutoScroll();
+        
+        flipContainer.classList.toggle('flipped');
+        isFlipped = !isFlipped;
+        setTimeout(() => {
+          if (isFlipped) {
+            wordListContainer.scrollTop = 0;
+          }
+        }, 300);
+      }
+      
+      // 监听滚动容器上的用户交互
+      wordListContainer.addEventListener('scroll', pauseAutoScroll);
+      wordListContainer.addEventListener('mousedown', pauseAutoScroll);
+      wordListContainer.addEventListener('mouseup', pauseAutoScroll);
+      wordListContainer.addEventListener('touchstart', pauseAutoScroll);
+      wordListContainer.addEventListener('touchend', pauseAutoScroll);
+      wordListContainer.addEventListener('click', pauseAutoScroll);
+      
+      window.addEventListener('beforeunload', () => {
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        if (scrollCheckInterval) clearInterval(scrollCheckInterval);
+        if (userActivityTimer) clearTimeout(userActivityTimer);
+      });
+      
+      function init() {
+        updateSkinSlider();
+        initSkin();
+        showWord(currentWordIndex);
+        updateTheme();
+        updatePlayButtonState(false, false);
+        setButtonActive(slowBtn, isSlow);
+      }
+      
+      init();
+    });
+  </script>
+</body>
+</html>
