@@ -1,0 +1,1440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>单词应用</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <!-- Tailwind配置 -->
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            skinA: {
+              primary: '#0071e3',
+              dark: {
+                primary: '#2997ff',
+                bg: '#1c1c1e',
+                card: '#2c2c2e',
+                btn: '#3a3a3c',
+                activeBtn: '#283A4B',
+                overlay: 'rgba(0, 0, 0, 0.6)'
+              }
+            },
+            skinB: {
+              primary: '#0071e3',
+              light: {
+                navbar: '#F7F7F9',
+                card: '#F5F5F7',
+                btn: '#EAEAEA',
+                bg: '#FFFFFF',
+                activeBtn: '#606C58'
+              },
+              dark: {
+                primary: '#2997ff',
+                bg: '#1c1c1e',
+                card: '#2c2c2e',
+                btn: '#3a3a3c',
+                activeBtn: '#283A4B',
+                overlay: 'rgba(0, 0, 0, 0.6)'
+              }
+            },
+            silver: '#e0e0e0',
+            dark: {
+              silver: '#424242'
+            }
+          },
+          fontFamily: {
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
+            apple: ['-apple-system', 'BlinkMacSystemFont', 'San Francisco', 'Helvetica Neue', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .backdrop-blur-sm {
+        backdrop-filter: blur(8px);
+      }
+      .shadow-soft {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      }
+      .text-glow {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+      }
+      .dark .text-glow {
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+      }
+      .flip-container {
+        perspective: 1500px;
+        width: 100%;
+        min-height: 500px;
+        position: relative;
+      }
+      .flipper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+      }
+      .card {
+        backface-visibility: hidden;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        min-height: 500px;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+      /* 卡片初始状态 */
+      .card1 { transform: rotateY(180deg); }
+      .card2 { transform: rotateY(0deg); }
+      .card3 { transform: rotateY(180deg); }
+      
+      .control-btn {
+        min-width: 4rem;
+      }
+      .word-item {
+        @apply transition-all duration-200 cursor-pointer rounded-xl p-4 flex items-center justify-between font-apple focus:outline-none relative pl-6;
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+      }
+      .dark .word-item {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+      }
+      .word-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 
+          4px 4px 8px rgba(0, 0, 0, 0.12),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+      }
+      .dark .word-item:hover {
+        box-shadow: 
+          4px 4px 8px rgba(0, 0, 0, 0.4),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+      }
+      .word-item.active {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.1),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.5);
+      }
+      .dark .word-item.active {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.35),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.08);
+      }
+      .word-item:focus {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.7);
+      }
+      .dark .word-item:focus {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 2px rgba(255, 255, 255, 0.05);
+      }
+      .btn-active {
+        @apply text-white !important;
+      }
+      .skinB-active {
+        box-shadow: 
+          inset 0 1px 3px rgba(0, 0, 0, 0.4),
+          0 4px 8px rgba(0, 0, 0, 0.3),
+          0 1px 3px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
+      }
+      .skinA-dark-active {
+        box-shadow: 
+          inset 0 1px 3px rgba(0, 0, 0, 0.3),
+          0 1px 2px rgba(255, 255, 255, 0.1);
+        transition: all 0.2s ease;
+      }
+      .frosted {
+        backdrop-filter: blur(12px) !important;
+        opacity: 0.7 !important;
+        transition: all 0s !important;
+      }
+      .slider-container {
+        position: relative;
+        width: 44px;
+        height: 20px;
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+      }
+      .slider {
+        position: absolute;
+        top: 1px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        transition: transform 0.3s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        background-color: white !important;
+      }
+      .slider-left {
+        left: 1px;
+        transform: translateX(0);
+      }
+      .slider-right {
+        transform: translateX(24px);
+      }
+      .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(156, 163, 175, 0.5);
+        border-radius: 4px;
+      }
+      .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(107, 114, 128, 0.5);
+      }
+      #wordDisplay {
+        @apply text-4xl font-bold text-center my-3 mb-20 font-apple text-glow rounded-2xl p-6;
+      }
+      .dark #wordDisplay {
+      }
+      .skinB-light-btn {
+        box-shadow: 
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+      }
+      .skinB-light-btn:hover {
+        box-shadow: 
+          4px 4px 8px rgba(0, 0, 0, 0.12),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+      }
+      .skinB-light-btn:focus {
+        box-shadow: 
+          0 0 0 3px var(--focus-color, #0071e3),
+          3px 3px 6px rgba(0, 0, 0, 0.08),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.9),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.05);
+      }
+      .skinB-light-activeBtn {
+        box-shadow: 
+          inset 0 2px 5px rgba(0, 0, 0, 0.4),
+          0 4px 8px rgba(0, 0, 0, 0.3),
+          0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+      
+      .dark .skinB-dark-btn {
+        box-shadow: 
+          3px 3px 8px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.05),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.4);
+        transition: all 0.2s ease;
+      }
+      .dark .skinB-dark-btn:hover {
+        box-shadow: 
+          4px 4px 10px rgba(0, 0, 0, 0.4),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.07),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.5);
+        transform: translateY(-1px);
+      }
+      .dark .skinB-dark-btn:focus {
+        box-shadow: 
+          0 0 0 3px var(--focus-color-dark, #2997ff),
+          3px 3px 8px rgba(0, 0, 0, 0.3),
+          inset 1px 1px 3px rgba(255, 255, 255, 0.05),
+          inset -1px -1px 3px rgba(0, 0, 0, 0.4);
+      }
+      .skinB-dark-activeBtn {
+        box-shadow: 
+          inset 0 2px 5px rgba(0, 0, 0, 0.5),
+          0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .word-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        border-radius: 0 4px 4px 0;
+      }
+      
+      .skinA:not(.dark) .word-item.active::before {
+        background-color: #0071e3;
+      }
+      .skinA:not(.dark) .word-item .fa-star {
+        color: #0071e3 !important;
+      }
+      
+      .skinA.dark .word-item.active::before {
+        background-color: #283A4B;
+      }
+      .skinA.dark .word-item .fa-star {
+        color: #283A4B !important;
+      }
+      
+      .skinB:not(.dark) .word-item.active::before {
+        background-color: #606C58;
+      }
+      .skinB:not(.dark) .word-item .fa-star {
+        color: #606C58 !important;
+      }
+      
+      .skinB.dark .word-item.active::before {
+        background-color: #283A4B;
+      }
+      .skinB.dark .word-item .fa-star {
+        color: #283A4B !important;
+      }
+    }
+  </style>
+</head>
+
+<body class="bg-white dark:bg-skinA-dark-bg transition-colors duration-300 font-sans text-gray-900 dark:text-white skinA">
+  <header id="navbar" class="fixed top-0 left-0 right-0 z-40 bg-white/80 dark:bg-skinA-dark-bg/80 backdrop-blur-sm border-b border-gray-200 dark:border-gray-800 transition-all duration-300">
+    <div class="container mx-auto px-4 py-2 flex items-center justify-between">
+      <div class="flex items-center">
+        <span class="text-lg font-semibold tracking-tight">Words</span>
+      </div>
+      <button id="menuBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-skinA-dark-btn transition-colors duration-200 z-50">
+        <i class="fa fa-bars text-xl"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="container mx-auto px-4 pt-14 pb-10">
+    <div id="expandableCard" class="rounded-3xl p-6 mt-6 mb-8 transition-all duration-500 min-h-[85vh] overflow-hidden card-3d" 
+         style="--focus-color: #0071e3; --focus-color-dark: #2997ff;">
+      <div class="flex justify-end items-start mb-6">
+        <button id="expandBtn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-skinA-dark-btn transition-colors duration-200">
+          <i class="fa fa-expand text-lg"></i>
+        </button>
+      </div>
+      
+      <div class="flip-container">
+        <div class="flipper">
+          <!-- 卡片2: 正面朗读区 -->
+          <div class="card card2">
+            <div class="flex flex-col items-center justify-start px-6 h-full">
+              <div id="wordDisplay" class="text-4xl font-bold text-center my-3 mb-20 font-apple text-glow">
+                the
+              </div>
+              
+              <div id="frontControls" class="flex flex-col items-center gap-5 w-full max-w-md flex-grow justify-center">
+                <button id="prevBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-step-backward mr-1"></i> Previous
+                </button>
+                
+                <button id="playBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-play mr-1"></i> <span>Play</span>
+                </button>
+                
+                <button id="nextBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-step-forward mr-1"></i> Next
+                </button>
+                
+                <button id="collectBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-star-o mr-1"></i> Collect
+                </button>
+                
+                <button id="autoPlayBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-repeat mr-1"></i> Auto Play
+                </button>
+                
+                <button id="slowBtn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white w-full py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                  <i class="fa fa-clock-o mr-1"></i> Slow
+                </button>
+                
+                <div class="flex gap-3 w-full">
+                  <button id="flipToCard1Btn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white flex-1 py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                    <i class="fa fa-list mr-1"></i> All List
+                  </button>
+                  <button id="flipToCard3Btn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white flex-1 py-2.5 rounded-full text-base font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow control-btn">
+                    <i class="fa fa-star mr-1"></i> Collected
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 卡片1: ALL LIST -->
+          <div class="card card1">
+            <div class="flex flex-col h-full p-4 pb-8">
+              <h3 class="text-4xl font-bold text-center my-3 mb-12 font-apple text-glow">ALL LIST</h3>
+              
+              <div id="wordListContainer" class="w-full flex-grow overflow-y-auto px-2 mb-6 custom-scrollbar rounded-2xl p-4" style="max-height: calc(85vh - 320px);">
+                <ul class="space-y-4" id="wordList">
+                </ul>
+              </div>
+              
+              <div class="flex justify-center mt-auto mb-8">
+                <div class="flex gap-3 w-full max-w-md">
+                  <button id="flipToCard2From1Btn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white flex-1 py-2.5 rounded-full text-lg font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow z-10">
+                    <i class="fa fa-volume-up mr-2"></i>朗读区
+                  </button>
+                  <button id="flipToCard3From1Btn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white flex-1 py-2.5 rounded-full text-lg font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow z-10">
+                    <i class="fa fa-star mr-2"></i>收藏
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- 卡片3: Collected区 -->
+          <div class="card card3">
+            <div class="flex flex-col h-full p-4 pb-8">
+              <h3 class="text-4xl font-bold text-center my-3 mb-12 font-apple text-glow">COLLECTED LIST</h3>
+              
+              <div id="collectedListContainer" class="w-full flex-grow overflow-y-auto px-2 mb-6 custom-scrollbar rounded-2xl p-4" style="max-height: calc(85vh - 320px);">
+                <ul class="space-y-4" id="collectedList">
+                  <!-- 收藏的单词将在这里显示 -->
+                </ul>
+              </div>
+              
+              <div class="flex justify-center mt-auto mb-8">
+                <div class="flex gap-3 w-full max-w-md">
+                  <button id="flipToCard2From3Btn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white flex-1 py-2.5 rounded-full text-lg font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow z-10">
+                    <i class="fa fa-volume-up mr-2"></i>朗读区
+                  </button>
+                  <button id="flipToCard1From3Btn" class="bg-white dark:bg-skinB-dark-btn text-gray-900 dark:text-white flex-1 py-2.5 rounded-full text-lg font-medium hover:bg-gray-50 dark:hover:bg-skinB-dark-btn transition-all duration-300 font-apple shadow-sm hover:shadow z-10">
+                    <i class="fa fa-list mr-2"></i>全部
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div id="menuContainer">
+    <div id="menuOverlay" class="fixed inset-0 z-40 bg-black/30 dark:bg-skinB-dark-overlay backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-0"></div>
+    
+    <div id="menuPopup" class="absolute z-50 opacity-0 pointer-events-none transition-all duration-300">
+      <div class="bg-white dark:bg-skinB-dark-card rounded-2xl shadow-xl w-48 transform scale-95 transition-all duration-300" id="popupContent">
+        <div class="py-2">
+          <ul class="space-y-1">
+            <li>
+              <button id="themeToggle" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <div class="slider-container bg-gray-200 flex-shrink-0" id="themeSliderContainer">
+                  <div class="slider slider-left" id="themeSlider"></div>
+                </div>
+                <span id="themeText" class="ml-3">Switch Dark</span>
+              </button>
+            </li>
+            
+            <li>
+              <button id="skinToggle" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <div class="slider-container bg-gray-200 flex-shrink-0" id="skinSliderContainer">
+                  <div class="slider slider-left" id="skinSlider"></div>
+                </div>
+                <span id="skinText" class="ml-3">Switch B skin</span>
+              </button>
+            </li>
+
+            <li class="border-t border-gray-200 dark:border-gray-700 my-1"></li>
+            
+            <li>
+              <button id="popupCard2Btn" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <i class="fa fa-volume-up w-6 popup-icon"></i>
+                <span class="ml-3">朗读区</span>
+              </button>
+            </li>
+            
+            <li>
+              <button id="popupCard1Btn" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <i class="fa fa-list w-6 popup-icon"></i>
+                <span class="ml-3">All List</span>
+              </button>
+            </li>
+            
+            <li>
+              <button id="popupCard3Btn" class="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-skinB-dark-btn transition-colors text-left">
+                <i class="fa fa-star w-6 popup-icon"></i>
+                <span class="ml-3">Collected List</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const words = ["were", "these", "may", "apple", "banana", "cherry", "date", "elderberry", "fig", "grape"];
+      let currentWordIndex = 0;
+      let menuOpen = false;
+      let isExpanded = false;
+      let currentCard = 2; // 默认显示主界面
+      
+      const audioElement = new Audio();
+      
+      let isAutoPlaying = false;
+      let isPlaying = false;
+      let autoPlayTimer = null;
+      let scrollCheckInterval = null;
+      let collectedWords = JSON.parse(localStorage.getItem('collectedWords')) || [];
+      let isSlow = false;
+      let isPlayTriggeredByControl = false;
+      let currentSkin = localStorage.getItem('currentSkin') || 'A';
+      let isAnimating = false;
+      
+      // 设置初始皮肤类
+      document.body.classList.toggle('skinA', currentSkin === 'A');
+      document.body.classList.toggle('skinB', currentSkin === 'B');
+      
+      let isAutoScrollPaused = false;
+      let userActivityTimer = null;
+      const AUTO_SCROLL_DELAY = 5000;
+      const SCROLL_THRESHOLD = 20;
+      const SCROLL_CHECK_FREQ = 150;
+      
+      // DOM元素
+      const navbar = document.getElementById('navbar');
+      const menuBtn = document.getElementById('menuBtn');
+      const menuPopup = document.getElementById('menuPopup');
+      const popupContent = document.getElementById('popupContent');
+      const menuOverlay = document.getElementById('menuOverlay');
+      const expandBtn = document.getElementById('expandBtn');
+      const expandableCard = document.getElementById('expandableCard');
+      const themeToggle = document.getElementById('themeToggle');
+      const themeText = document.getElementById('themeText');
+      const wordDisplay = document.getElementById('wordDisplay');
+      const popupCard1Btn = document.getElementById('popupCard1Btn');
+      const popupCard2Btn = document.getElementById('popupCard2Btn');
+      const popupCard3Btn = document.getElementById('popupCard3Btn');
+      const flipContainer = document.querySelector('.flip-container');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+      const wordList = document.getElementById('wordList');
+      const wordListContainer = document.getElementById('wordListContainer');
+      const collectedList = document.getElementById('collectedList');
+      const collectedListContainer = document.getElementById('collectedListContainer');
+      const playBtn = document.getElementById('playBtn');
+      const playBtnText = playBtn.querySelector('span');
+      const playBtnIcon = playBtn.querySelector('i');
+      const autoPlayBtn = document.getElementById('autoPlayBtn');
+      const collectBtn = document.getElementById('collectBtn');
+      const slowBtn = document.getElementById('slowBtn');
+      const themeSliderContainer = document.getElementById('themeSliderContainer');
+      const themeSlider = document.getElementById('themeSlider');
+      const skinToggle = document.getElementById('skinToggle');
+      const skinSliderContainer = document.getElementById('skinSliderContainer');
+      const skinSlider = document.getElementById('skinSlider');
+      const skinText = document.getElementById('skinText');
+      const popupIcons = document.querySelectorAll('.popup-icon');
+      
+      // 卡片元素
+      const cards = {
+        1: document.querySelector('.card1'),
+        2: document.querySelector('.card2'),
+        3: document.querySelector('.card3')
+      };
+      
+      // 翻转按钮
+      const flipToCard1Btn = document.getElementById('flipToCard1Btn');
+      const flipToCard3Btn = document.getElementById('flipToCard3Btn');
+      const flipToCard2From1Btn = document.getElementById('flipToCard2From1Btn');
+      const flipToCard3From1Btn = document.getElementById('flipToCard3From1Btn');
+      const flipToCard2From3Btn = document.getElementById('flipToCard2From3Btn');
+      const flipToCard1From3Btn = document.getElementById('flipToCard1From3Btn');
+
+      const allControlButtons = [
+        prevBtn, nextBtn, playBtn, autoPlayBtn, collectBtn, slowBtn, 
+        flipToCard1Btn, flipToCard3Btn, flipToCard2From1Btn, flipToCard3From1Btn,
+        flipToCard2From3Btn, flipToCard1From3Btn
+      ];
+      
+      // 初始化单词列表
+      function initWordList() {
+        wordList.innerHTML = '';
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        let displayBgClass;
+        if (currentSkin === 'B' && !isDark) {
+          displayBgClass = 'bg-skinB-light-bg/90';
+        } else {
+          displayBgClass = isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white/90';
+        }
+        
+        words.forEach((word, index) => {
+          const li = document.createElement('li');
+          li.className = `${displayBgClass} word-item ${index === currentWordIndex ? 'active' : ''}`;
+          li.tabIndex = 0;
+          
+          const starIcon = collectedWords.includes(word) ? 
+            `<i class="fa fa-star"></i>` : 
+            '<i class="fa fa-star-o"></i>';
+          
+          li.innerHTML = `
+            <span class="text-base font-medium">${word}</span>
+            <span class="ml-2">${starIcon}</span>
+          `;
+          
+          li.addEventListener('click', () => {
+            resetControlButtonState();
+            const wasPlaying = isPlaying;
+            if (wasPlaying) {
+              stopAudio();
+              if (autoPlayTimer) clearInterval(autoPlayTimer);
+            }
+            
+            currentWordIndex = index;
+            showWord(currentWordIndex);
+            
+            if (isAutoPlaying && wasPlaying) {
+              isPlayTriggeredByControl = true;
+              speakWord(words[currentWordIndex], true);
+              setupAutoPlayTimer();
+            } else if (!isAutoPlaying && wasPlaying) {
+              isPlayTriggeredByControl = true;
+              speakWord(words[currentWordIndex], false);
+            }
+          });
+          
+          li.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              li.click();
+            }
+          });
+          
+          wordList.appendChild(li);
+        });
+      }
+      
+      // 初始化收藏列表
+      function initCollectedList() {
+        collectedList.innerHTML = '';
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        let displayBgClass;
+        if (currentSkin === 'B' && !isDark) {
+          displayBgClass = 'bg-skinB-light-bg/90';
+        } else {
+          displayBgClass = isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white/90';
+        }
+        
+        if (collectedWords.length === 0) {
+          const emptyItem = document.createElement('li');
+          emptyItem.className = `${displayBgClass} word-item text-center justify-center`;
+          emptyItem.innerHTML = `<span class="text-base font-medium text-gray-500">暂无收藏的单词</span>`;
+          collectedList.appendChild(emptyItem);
+          return;
+        }
+        
+        collectedWords.forEach((word, index) => {
+          const li = document.createElement('li');
+          li.className = `${displayBgClass} word-item ${word === words[currentWordIndex] ? 'active' : ''}`;
+          li.tabIndex = 0;
+          
+          li.innerHTML = `
+            <span class="text-base font-medium">${word}</span>
+            <span class="ml-2"><i class="fa fa-star"></i></span>
+          `;
+          
+          li.addEventListener('click', () => {
+            pauseAutoScroll();
+            
+            resetControlButtonState();
+            const wasPlaying = isPlaying;
+            if (wasPlaying) {
+              stopAudio();
+              if (autoPlayTimer) clearInterval(autoPlayTimer);
+            }
+            
+            currentWordIndex = words.indexOf(word);
+            showWord(currentWordIndex);
+            
+            if (isAutoPlaying && wasPlaying) {
+              isPlayTriggeredByControl = true;
+              speakWord(words[currentWordIndex], true);
+              setupAutoPlayTimer();
+            } else if (!isAutoPlaying && wasPlaying) {
+              isPlayTriggeredByControl = true;
+              speakWord(words[currentWordIndex], false);
+            }
+          });
+          
+          li.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              li.click();
+            }
+          });
+          
+          collectedList.appendChild(li);
+        });
+      }
+      
+      function updateWordListHeight() {
+        const containers = [wordListContainer, collectedListContainer];
+        containers.forEach(container => {
+          if (container) {
+            if (isExpanded) {
+              container.style.maxHeight = 'calc(100vh - 320px)';
+            } else {
+              container.style.maxHeight = 'calc(85vh - 320px)';
+            }
+          }
+        });
+      }
+      
+      function updatePopupIconsColor() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const iconColor = isDark ? 'text-white' : 'text-gray-900';
+        
+        popupIcons.forEach(icon => {
+          icon.className = icon.className
+            .replace(/text-skinA-primary|text-skinB-primary|text-skinA-dark-primary|text-skinB-dark-primary/g, '')
+            .replace(/text-white|text-gray-900|text-gray-400|text-gray-500/g, '');
+          icon.classList.add(iconColor);
+          icon.classList.add('w-6');
+        });
+      }
+      
+      function updateSliderColors() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        
+        let activeColor;
+        if (currentSkin === 'A') {
+          activeColor = isDark ? '#283A4B' : '#0071e3';
+        } else {
+          activeColor = isDark ? '#283A4B' : '#606C58';
+        }
+        
+        [themeSliderContainer, skinSliderContainer].forEach(container => {
+          container.style.backgroundColor = activeColor;
+        });
+        
+        expandableCard.style.setProperty('--focus-color', currentSkin === 'A' ? '#0071e3' : '#0071e3');
+        expandableCard.style.setProperty('--focus-color-dark', currentSkin === 'A' ? '#2997ff' : '#2997ff');
+      }
+      
+      function updateSkinSlider() {
+        if (currentSkin === 'B') {
+          skinSlider.classList.remove('slider-left');
+          skinSlider.classList.add('slider-right');
+          skinText.textContent = 'Switch A skin';
+          document.body.classList.remove('skinA');
+          document.body.classList.add('skinB');
+        } else {
+          skinSlider.classList.remove('slider-right');
+          skinSlider.classList.add('slider-left');
+          skinText.textContent = 'Switch B skin';
+          document.body.classList.remove('skinB');
+          document.body.classList.add('skinA');
+        }
+      }
+      
+      function initSkin() {
+        const isDark = document.documentElement.classList.contains('dark');
+        const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+        
+        document.body.className = document.body.className
+          .replace(/bg-white|bg-skinB-light-bg/g, '')
+          .replace(/dark:bg-skinA-dark-bg|dark:bg-skinB-dark-bg/g, '');
+        
+        navbar.className = navbar.className
+          .replace(/bg-white\/80|bg-skinB-light-navbar\/80/g, '')
+          .replace(/dark:bg-skinA-dark-bg\/80|dark:bg-skinB-dark-bg\/80/g, '');
+        
+        expandableCard.className = expandableCard.className
+          .replace(/bg-white|bg-skinB-light-card/g, '')
+          .replace(/dark:bg-skinA-dark-card|dark:bg-skinB-dark-card/g, '');
+        
+        if (currentSkin === 'B' && !isDark) {
+          expandableCard.classList.add('bg-skinB-light-bg/90');
+          wordDisplay.classList.add('bg-skinB-light-bg/90');
+        } else {
+          const bgClass = isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white/90';
+          expandableCard.classList.add(bgClass);
+          wordDisplay.classList.add(bgClass);
+        }
+        
+        allControlButtons.forEach(btn => {
+          btn.className = btn.className
+            .replace(/bg-white|bg-skinB-light-btn/g, '')
+            .replace(/hover:bg-gray-50|hover:bg-skinB-light-btn\/80/g, '')
+            .replace(/dark:bg-skinA-dark-btn|dark:bg-skinB-dark-btn/g, '');
+        
+          btn.classList.remove('skinB-active', 'skinA-dark-active');
+        });
+        
+        if (currentSkin === 'B' && !isDark) {
+          document.body.classList.add('bg-skinB-light-bg');
+          navbar.classList.add('bg-skinB-light-navbar/80');
+          
+          allControlButtons.forEach(btn => {
+            btn.classList.add('bg-skinB-light-btn');
+            btn.classList.add('hover:bg-skinB-light-btn/80');
+          });
+        } else {
+          document.body.classList.add(isDark ? `dark:bg-${skinPrefix}-dark-bg` : 'bg-white');
+          navbar.classList.add(isDark ? `dark:bg-${skinPrefix}-dark-bg/80` : 'bg-white/80');
+          
+          allControlButtons.forEach(btn => {
+            btn.classList.add(isDark ? `dark:bg-${skinPrefix}-dark-btn` : 'bg-white');
+            btn.classList.add('hover:bg-gray-50');
+          });
+        }
+        
+        menuOverlay.className = menuOverlay.className.replace(/dark:bg-skinA-dark-overlay|dark:bg-skinB-dark-overlay/g, `dark:bg-${skinPrefix}-dark-overlay`);
+        popupContent.className = popupContent.className.replace(/dark:bg-skinA-dark-card|dark:bg-skinB-dark-card/g, `dark:bg-${skinPrefix}-dark-card`);
+        
+        updatePopupIconsColor();
+        initWordList();
+        initCollectedList();
+        updateSliderColors();
+      }
+      
+      function switchSkin(skin) {
+        currentSkin = skin;
+        localStorage.setItem('currentSkin', skin);
+        refreshAllButtonStates();
+        updateSkinSlider();
+        initSkin();
+        closeMenu();
+      }
+      
+      function setButtonActive(button, isActive) {
+        if (button) {
+          const isDark = document.documentElement.classList.contains('dark');
+          const skinPrefix = currentSkin === 'A' ? 'skinA' : 'skinB';
+          
+          button.classList.remove('skinB-active', 'skinA-dark-active', 'btn-active');
+          button.classList.remove(`bg-skinA-primary`, `bg-skinA-dark-activeBtn`, `bg-skinB-light-activeBtn`, `bg-skinB-dark-activeBtn`);
+          button.classList.remove(`hover:bg-skinA-primary/90`, `hover:bg-skinA-dark-activeBtn/90`, `hover:bg-skinB-light-activeBtn/90`, `hover:bg-skinB-dark-activeBtn/90`);
+          
+          button.style.backgroundColor = '';
+          button.style.boxShadow = '';
+          button.style.transform = '';
+          
+          requestAnimationFrame(() => {
+            if (isActive) {
+              if (currentSkin === 'A') {
+                button.classList.add('btn-active');
+                const activeColor = isDark ? `bg-skinA-dark-activeBtn` : `bg-skinA-primary`;
+                button.classList.add(activeColor);
+                button.classList.add(`hover:${activeColor}/90`);
+                
+                if (isDark) {
+                  button.classList.add('skinA-dark-active');
+                  button.style.backgroundColor = '#283A4B';
+                }
+              } else {
+                button.classList.add('btn-active', 'skinB-active');
+                const activeColor = isDark ? `bg-skinB-dark-activeBtn` : `bg-skinB-light-activeBtn`;
+                button.classList.add(activeColor);
+                button.classList.add(`hover:${activeColor}/90`);
+                button.style.backgroundColor = isDark ? '#283A4B' : '#606C58';
+                button.style.transform = 'translateY(-1px)';
+              }
+              
+              button.classList.remove('hover:bg-gray-50', 'hover:bg-skinB-light-btn/80', 'dark:hover:bg-skinA-dark-btn', 'dark:hover:bg-skinB-dark-btn');
+            } else {
+              button.classList.remove('skinB-active', 'skinA-dark-active');
+              if (currentSkin === 'B' && !isDark) {
+                button.classList.add('hover:bg-skinB-light-btn/80');
+              } else {
+                button.classList.add('hover:bg-gray-50');
+              }
+              button.classList.add(`dark:hover:bg-${skinPrefix}-dark-btn`);
+            }
+          });
+        }
+      }
+      
+      function refreshAllButtonStates() {
+        requestAnimationFrame(() => {
+          allControlButtons.forEach(btn => {
+            btn.classList.remove('skinB-active', 'skinA-dark-active', 'btn-active');
+            btn.style.backgroundColor = '';
+            btn.style.boxShadow = '';
+            btn.style.transform = '';
+          });
+          
+          requestAnimationFrame(() => {
+            setButtonActive(prevBtn, false);
+            setButtonActive(nextBtn, false);
+            setButtonActive(playBtn, isPlaying);
+            setButtonActive(autoPlayBtn, isAutoPlaying);
+            setButtonActive(collectBtn, collectedWords.includes(words[currentWordIndex]));
+            setButtonActive(slowBtn, isSlow);
+            
+            // 卡片翻转按钮状态
+            setButtonActive(flipToCard1Btn, currentCard === 1);
+            setButtonActive(flipToCard3Btn, currentCard === 3);
+            setButtonActive(flipToCard2From1Btn, currentCard === 2);
+            setButtonActive(flipToCard3From1Btn, currentCard === 3);
+            setButtonActive(flipToCard2From3Btn, currentCard === 2);
+            setButtonActive(flipToCard1From3Btn, currentCard === 1);
+          });
+        });
+      }
+      
+      function updatePlayButtonState(isActive, shouldActivate) {
+        if (isActive) {
+          playBtnIcon.classList.remove('fa-play');
+          playBtnIcon.classList.add('fa-pause');
+          playBtnText.textContent = 'Pause';
+        } else {
+          playBtnIcon.classList.remove('fa-pause');
+          playBtnIcon.classList.add('fa-play');
+          playBtnText.textContent = 'Play';
+        }
+        setButtonActive(playBtn, isActive && shouldActivate);
+      }
+      
+      function positionPopup() {
+        const menuBtnRect = menuBtn.getBoundingClientRect();
+        const popupStyle = menuPopup.style;
+        popupStyle.top = `${menuBtnRect.bottom}px`;
+        popupStyle.right = `${window.innerWidth - menuBtnRect.left}px`;
+      }
+      
+      function updateWordListActive() {
+        document.querySelectorAll('#wordList .word-item').forEach((item, index) => {
+          if (index === currentWordIndex) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+        
+        document.querySelectorAll('#collectedList .word-item').forEach(item => {
+          const word = item.querySelector('span:first-child').textContent;
+          if (word === words[currentWordIndex]) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+      }
+      
+      // 检查元素是否在可视区域内
+      function isElementVisible(element, container) {
+        const rect = element.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        return (
+          rect.top >= containerRect.top &&
+          rect.bottom <= containerRect.bottom
+        );
+      }
+      
+      // 滚动到指定元素，使其居中显示
+      function scrollToElement(element, container) {
+        const elementRect = element.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        const containerTop = container.scrollTop;
+        
+        const elementPosition = elementRect.top - containerRect.top + containerTop;
+        const containerMiddle = containerRect.height / 2;
+        const elementMiddle = elementRect.height / 2;
+        
+        container.scrollTo({
+          top: elementPosition - containerMiddle + elementMiddle,
+          behavior: 'smooth'
+        });
+      }
+      
+      // 自动滚动逻辑
+      function checkAutoScroll() {
+        if (!isAutoPlaying || isAutoScrollPaused) return;
+        
+        const activeWord = document.querySelector('#wordList .word-item.active');
+        if (!activeWord) return;
+        
+        const container = wordListContainer;
+        
+        if (!isElementVisible(activeWord, container)) {
+          scrollToElement(activeWord, container);
+          return;
+        }
+        
+        const activeIndex = Array.from(wordList.children).indexOf(activeWord);
+        const totalWords = wordList.children.length;
+        let targetIndex = activeIndex + 3;
+        
+        if (targetIndex >= totalWords) {
+          const overflow = targetIndex - totalWords;
+          
+          if (activeIndex >= totalWords - 3) {
+            container.scrollTo({
+              top: 0,
+              behavior: 'smooth'
+            });
+            return;
+          }
+          
+          targetIndex = overflow;
+        }
+        
+        const targetWord = wordList.children[targetIndex];
+        const targetRect = targetWord.getBoundingClientRect();
+        const containerRect = container.getBoundingClientRect();
+        
+        if (targetRect.bottom > containerRect.bottom - SCROLL_THRESHOLD) {
+          const scrollAmount = targetRect.bottom - containerRect.bottom + SCROLL_THRESHOLD;
+          container.scrollBy({
+            top: scrollAmount,
+            behavior: 'smooth'
+          });
+        }
+      }
+      
+      function startScrollCheck() {
+        if (scrollCheckInterval) {
+          clearInterval(scrollCheckInterval);
+        }
+        scrollCheckInterval = setInterval(checkAutoScroll, SCROLL_CHECK_FREQ);
+      }
+      
+      function stopScrollCheck() {
+        if (scrollCheckInterval) {
+          clearInterval(scrollCheckInterval);
+          scrollCheckInterval = null;
+        }
+      }
+      
+      // 暂停自动滚动并设置恢复计时器
+      function pauseAutoScroll() {
+        if (!isAutoPlaying) return;
+        
+        isAutoScrollPaused = true;
+        
+        if (userActivityTimer) {
+          clearTimeout(userActivityTimer);
+        }
+        
+        userActivityTimer = setTimeout(() => {
+          isAutoScrollPaused = false;
+          
+          const activeWord = document.querySelector('#wordList .word-item.active');
+          if (activeWord && !isElementVisible(activeWord, wordListContainer)) {
+            scrollToElement(activeWord, wordListContainer);
+            setTimeout(checkAutoScroll, 600);
+          } else {
+            checkAutoScroll();
+          }
+        }, AUTO_SCROLL_DELAY);
+      }
+      
+      function stopAudio() {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+        isPlaying = false;
+        updatePlayButtonState(false, false);
+      }
+      
+      function speakWord(word, isAuto) {
+        stopAudio();
+        
+        const youdaoUrl = `http://dict.youdao.com/dictvoice?type=0&audio=${encodeURIComponent(word)}`;
+        audioElement.src = youdaoUrl;
+        
+        isPlaying = true;
+        const shouldActivate = !isPlayTriggeredByControl || isAuto;
+        updatePlayButtonState(true, shouldActivate);
+        
+        updateWordListActive();
+        
+        audioElement.onended = function() {
+          isPlaying = false;
+          if (!isAutoPlaying) {
+            updatePlayButtonState(false, false);
+          }
+        };
+        
+        audioElement.play().catch(error => {
+          console.error('播放失败:', error);
+          isPlaying = false;
+          updatePlayButtonState(false, false);
+        });
+      }
+      
+      function showWord(index) {
+        wordDisplay.textContent = words[index];
+        updateWordListActive();
+        updateCollectBtn();
+        
+        if (isAutoPlaying) {
+          checkAutoScroll();
+        }
+      }
+      
+      prevBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        stopAudio();
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        
+        currentWordIndex = (currentWordIndex - 1 + words.length) % words.length;
+        showWord(currentWordIndex);
+        
+        isPlayTriggeredByControl = true;
+        
+        setButtonActive(prevBtn, true);
+        setButtonActive(nextBtn, false);
+        setTimeout(() => setButtonActive(prevBtn, false), 150);
+        
+        speakWord(words[currentWordIndex], isAutoPlaying);
+        
+        if (isAutoPlaying) {
+          setupAutoPlayTimer();
+        }
+      });
+      
+      nextBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        stopAudio();
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        
+        currentWordIndex = (currentWordIndex + 1) % words.length;
+        showWord(currentWordIndex);
+        
+        isPlayTriggeredByControl = true;
+        
+        setButtonActive(nextBtn, true);
+        setButtonActive(prevBtn, false);
+        setTimeout(() => setButtonActive(nextBtn, false), 150);
+        
+        speakWord(words[currentWordIndex], isAutoPlaying);
+        
+        if (isAutoPlaying) {
+          setupAutoPlayTimer();
+        }
+      });
+      
+      playBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (isPlaying) {
+          stopAudio();
+          if (autoPlayTimer) clearInterval(autoPlayTimer);
+        } else {
+          resetControlButtonState();
+          isPlaying = true;
+          isPlayTriggeredByControl = false;
+          updatePlayButtonState(true, true);
+          speakWord(words[currentWordIndex], isAutoPlaying);
+          
+          if (isAutoPlaying) {
+            setupAutoPlayTimer();
+          }
+        }
+      });
+      
+      function resetControlButtonState() {
+        setButtonActive(prevBtn, false);
+        setButtonActive(nextBtn, false);
+      }
+      
+      function setupAutoPlayTimer() {
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        const intervalTime = isSlow ? 3000 : 2000;
+        
+        startScrollCheck();
+        
+        autoPlayTimer = setInterval(() => {
+          currentWordIndex = (currentWordIndex + 1) % words.length;
+          showWord(currentWordIndex);
+          isPlayTriggeredByControl = false;
+          speakWord(words[currentWordIndex], true);
+        }, intervalTime);
+      }
+      
+      function updateCollectBtn() {
+        const currentWord = words[currentWordIndex];
+        const collectIcon = collectBtn.querySelector('i');
+        const isCollected = collectedWords.includes(currentWord);
+        
+        if (isCollected) {
+          collectIcon.classList.remove('fa-star-o');
+          collectIcon.classList.add('fa-star');
+        } else {
+          collectIcon.classList.remove('fa-star');
+          collectIcon.classList.add('fa-star-o');
+        }
+        
+        setButtonActive(collectBtn, isCollected);
+      }
+      
+      collectBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        resetControlButtonState();
+        const currentWord = words[currentWordIndex];
+        const index = collectedWords.indexOf(currentWord);
+        
+        if (index === -1) {
+          collectedWords.push(currentWord);
+        } else {
+          collectedWords.splice(index, 1);
+        }
+        
+        localStorage.setItem('collectedWords', JSON.stringify(collectedWords));
+        updateCollectBtn();
+        initWordList();
+        initCollectedList();
+      });
+      
+      slowBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        resetControlButtonState();
+        isSlow = !isSlow;
+        setButtonActive(slowBtn, isSlow);
+        
+        if (isAutoPlaying && autoPlayTimer) {
+          clearInterval(autoPlayTimer);
+          setupAutoPlayTimer();
+        }
+      });
+      
+      window.addEventListener('resize', () => {
+        if (menuOpen) positionPopup();
+        if (isExpanded) {
+          updateWordListHeight();
+        }
+      });
+      
+      menuBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        pauseAutoScroll();
+        
+        if (menuOpen) {
+          closeMenu();
+        } else {
+          positionPopup();
+          openMenu();
+          updatePopupIconsColor();
+        }
+      });
+      
+      // 点击空白处关闭菜单
+      menuOverlay.addEventListener('click', function() {
+        if (menuOpen) {
+          closeMenu();
+        }
+      });
+      
+      // 防止点击菜单内容时关闭菜单
+      popupContent.addEventListener('click', function(e) {
+        e.stopPropagation();
+      });
+      
+      function openMenu() {
+        menuPopup.classList.remove('opacity-0', 'pointer-events-none');
+        popupContent.classList.remove('scale-95');
+        popupContent.classList.add('scale-100');
+        menuOverlay.classList.remove('opacity-0', 'pointer-events-none');
+        navbar.classList.add('frosted');
+        menuOpen = true;
+      }
+      
+      function closeMenu() {
+        menuPopup.classList.add('opacity-0', 'pointer-events-none');
+        popupContent.classList.remove('scale-100');
+        popupContent.classList.add('scale-95');
+        menuOverlay.classList.add('opacity-0', 'pointer-events-none');
+        navbar.classList.remove('frosted');
+        menuOpen = false;
+      }
+      
+      expandBtn.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (isPlaying) {
+          stopAudio();
+          if (autoPlayTimer) clearInterval(autoPlayTimer);
+          stopScrollCheck();
+          isPlaying = false;
+          updatePlayButtonState(false, false);
+        }
+        
+        if (isExpanded) {
+          expandableCard.classList.remove('fixed', 'inset-0', 'm-0', 'z-40', 'rounded-none', 'p-8');
+          expandableCard.classList.add('rounded-3xl', 'mt-6', 'mb-8', 'p-6');
+          expandBtn.innerHTML = '<i class="fa fa-expand text-lg"></i>';
+          document.body.classList.remove('overflow-hidden');
+          navbar.classList.remove('opacity-0', 'pointer-events-none');
+        } else {
+          expandableCard.classList.add('fixed', 'inset-0', 'm-0', 'z-40', 'rounded-none', 'p-8');
+          expandableCard.classList.remove('rounded-3xl', 'mt-6', 'mb-8', 'p-6');
+          expandBtn.innerHTML = '<i class="fa fa-compress text-lg"></i>';
+          document.body.classList.add('overflow-hidden');
+          navbar.classList.add('opacity-0', 'pointer-events-none');
+          closeMenu();
+        }
+        
+        isExpanded = !isExpanded;
+        updateWordListHeight();
+      });
+      
+      function updateTheme() {
+        const isDark = document.documentElement.classList.contains('dark');
+        if (isDark) {
+          themeText.textContent = 'Switch Light';
+          themeSlider.classList.remove('slider-left');
+          themeSlider.classList.add('slider-right');
+        } else {
+          themeText.textContent = 'Switch Dark';
+          themeSlider.classList.remove('slider-right');
+          themeSlider.classList.add('slider-left');
+        }
+        
+        updateSliderColors();
+        updatePopupIconsColor();
+        refreshAllButtonStates();
+        initSkin();
+      }
+      
+      skinToggle.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        const newSkin = currentSkin === 'A' ? 'B' : 'A';
+        switchSkin(newSkin);
+      });
+      
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 10) {
+          navbar.classList.add('shadow-md');
+        } else {
+          navbar.classList.remove('shadow-md');
+        }
+      });
+      
+      themeToggle.addEventListener('click', () => {
+        pauseAutoScroll();
+        
+        if (document.documentElement.classList.contains('dark')) {
+          document.documentElement.classList.remove('dark');
+          localStorage.theme = 'light';
+        } else {
+          document.documentElement.classList.add('dark');
+          localStorage.theme = 'dark';
+        }
+        updateTheme();
+        closeMenu();
+      });
+      
+      // 卡片翻转功能 - 采用示例代码中的翻转逻辑
+      function showCard(targetCard) {
+        if (currentCard === targetCard || isAnimating) return;
+        isAnimating = true;
+        
+        // 当前卡片旋转隐藏
+        cards[currentCard].style.transform = 'rotateY(180deg)';
+        
+        // 目标卡片旋转显示
+        cards[targetCard].style.transform = 'rotateY(0deg)';
+        
+        // 动画结束后更新状态
+        setTimeout(() => {
+          currentCard = targetCard;
+          isAnimating = false;
+          refreshAllButtonStates();
+          
+          // 初始化对应列表
+          if (targetCard === 1) {
+            initWordList();
+          } else if (targetCard === 3) {
+            initCollectedList();
+          }
+        }, 800);
+      }
+      
+      // 翻转按钮事件监听
+      flipToCard1Btn.addEventListener('click', () => showCard(1));
+      flipToCard3Btn.addEventListener('click', () => showCard(3));
+      flipToCard2From1Btn.addEventListener('click', () => showCard(2));
+      flipToCard3From1Btn.addEventListener('click', () => showCard(3));
+      flipToCard2From3Btn.addEventListener('click', () => showCard(2));
+      flipToCard1From3Btn.addEventListener('click', () => showCard(1));
+      
+      // 菜单中的卡片切换按钮
+      popupCard1Btn.addEventListener('click', () => {
+        showCard(1);
+        closeMenu();
+      });
+      
+      popupCard2Btn.addEventListener('click', () => {
+        showCard(2);
+        closeMenu();
+      });
+      
+      popupCard3Btn.addEventListener('click', () => {
+        showCard(3);
+        closeMenu();
+      });
+      
+      // 监听滚动容器上的用户交互
+      wordListContainer.addEventListener('scroll', pauseAutoScroll);
+      wordListContainer.addEventListener('mousedown', pauseAutoScroll);
+      wordListContainer.addEventListener('mouseup', pauseAutoScroll);
+      wordListContainer.addEventListener('touchstart', pauseAutoScroll);
+      wordListContainer.addEventListener('touchend', pauseAutoScroll);
+      wordListContainer.addEventListener('click', pauseAutoScroll);
+      
+      // 收藏列表的用户交互
+      collectedListContainer.addEventListener('scroll', pauseAutoScroll);
+      collectedListContainer.addEventListener('mousedown', pauseAutoScroll);
+      collectedListContainer.addEventListener('mouseup', pauseAutoScroll);
+      collectedListContainer.addEventListener('touchstart', pauseAutoScroll);
+      collectedListContainer.addEventListener('touchend', pauseAutoScroll);
+      collectedListContainer.addEventListener('click', pauseAutoScroll);
+      
+      window.addEventListener('beforeunload', () => {
+        if (autoPlayTimer) clearInterval(autoPlayTimer);
+        if (scrollCheckInterval) clearInterval(scrollCheckInterval);
+        if (userActivityTimer) clearTimeout(userActivityTimer);
+      });
+      
+      function init() {
+        updateSkinSlider();
+        initSkin();
+        showWord(currentWordIndex);
+        updateTheme();
+        updatePlayButtonState(false, false);
+        setButtonActive(slowBtn, isSlow);
+      }
+      
+      init();
+    });
+  </script>
+</body>
+</html>
